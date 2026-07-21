@@ -341,6 +341,7 @@ img { max-width: 100%; display: block; }
   .container-shell{width:min(100% - 1.25rem,1240px)}
   .announcement { min-height:2.6rem; line-height:1.25; }
   .site-header.has-announcement { top:2.6rem; }
+  .site-header.has-announcement.is-scrolled { top:0; }
   .nav-row { min-height:4.5rem; }
   .hero-premium { min-height:auto; }
   .hero-premium-shell { padding-top:6.6rem; }
