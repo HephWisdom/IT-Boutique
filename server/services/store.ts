@@ -1,0 +1,22 @@
+import mongoose from 'mongoose';
+import { Activity, Content, Enquiry, Talent } from '../models/index.ts';
+
+type Kind='enquiries'|'talent'; type AnyRecord=Record<string,unknown>;
+const memory:{enquiries:AnyRecord[];talent:AnyRecord[];content:AnyRecord[];activity:AnyRecord[]}={enquiries:[],talent:[],content:[],activity:[]};
+let memoryAllowed=false;
+
+export async function connectStore(uri:string|undefined,allowMemory:boolean){memoryAllowed=allowMemory;if(uri){try{await mongoose.connect(uri);return 'mongodb' as const}catch(error){if(!allowMemory)throw error;console.warn('MongoDB unavailable; using the explicitly enabled in-memory development store.')}}if(!allowMemory)throw new Error('MONGODB_URI is required when ALLOW_MEMORY_STORE is not true.');return 'memory' as const}
+const db=()=>mongoose.connection.readyState===1;
+const model=(kind:Kind)=>kind==='enquiries'?Enquiry:Talent;
+function id(){return new mongoose.Types.ObjectId().toString()}
+
+export async function createSubmission(kind:Kind,data:AnyRecord){if(db()){const existing=await model(kind).findOne({idempotencyKey:data.idempotencyKey}).lean();if(existing)return {record:existing,duplicate:true};try{return {record:await model(kind).create(data),duplicate:false}}catch(error:unknown){if(error&&typeof error==='object'&&'code' in error&&error.code===11000){return {record:await model(kind).findOne({idempotencyKey:data.idempotencyKey}).lean(),duplicate:true}}throw error}}if(!memoryAllowed)throw new Error('Storage unavailable');const existing=memory[kind].find(x=>x.idempotencyKey===data.idempotencyKey);if(existing)return{record:existing,duplicate:true};const record={...data,_id:id(),createdAt:new Date(),updatedAt:new Date()};memory[kind].push(record);return{record,duplicate:false}}
+export async function markDelivery(kind:Kind,recordId:string,status:string){if(db())await model(kind).findByIdAndUpdate(recordId,{emailDelivery:status});else{const found=memory[kind].find(x=>String(x._id)===recordId);if(found)found.emailDelivery=status}}
+export async function listRecords(kind:Kind,query=''){if(db()){const filter:Record<string,unknown>={archived:{$ne:true}};if(query){const safe=query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');filter.$or=['name','email','reference','organization','role'].map(field=>({[field]:{$regex:safe,$options:'i'}}))}return model(kind).find(filter).sort({createdAt:-1}).lean()}const q=query.toLowerCase();return memory[kind].filter(x=>!x.archived&&(!q||[x.name,x.email,x.reference,x.organization,x.role].some(v=>String(v||'').toLowerCase().includes(q)))).sort((a,b)=>+new Date(String(b.createdAt))-+new Date(String(a.createdAt)))}
+export async function updateRecord(kind:Kind,idValue:string,patch:AnyRecord){if(db())return model(kind).findByIdAndUpdate(idValue,patch,{new:true,runValidators:true}).lean();const found=memory[kind].find(x=>String(x._id)===idValue);if(!found)return null;Object.assign(found,patch,{updatedAt:new Date()});return found}
+export async function getRecord(kind:Kind,idValue:string){if(db())return model(kind).findById(idValue).lean();return memory[kind].find(x=>String(x._id)===idValue)||null}
+export async function saveContent(data:AnyRecord){if(db())return Content.findOneAndUpdate({type:data.type,slug:data.slug},data,{new:true,upsert:true,runValidators:true}).lean();const found=memory.content.find(x=>x.type===data.type&&x.slug===data.slug);if(found){Object.assign(found,data,{updatedAt:new Date()});return found}const record={...data,_id:id(),archived:false,createdAt:new Date(),updatedAt:new Date()};memory.content.push(record);return record}
+export async function listContent(type:string){if(db())return Content.find({type,archived:{$ne:true}}).sort({updatedAt:-1}).lean();return memory.content.filter(x=>x.type===type&&!x.archived)}
+export async function updateContent(idValue:string,patch:AnyRecord){if(db())return Content.findByIdAndUpdate(idValue,patch,{new:true}).lean();const found=memory.content.find(x=>String(x._id)===idValue);if(found)Object.assign(found,patch,{updatedAt:new Date()});return found||null}
+export async function logActivity(actor:string,action:string,entityType:string,entityId?:string,metadata:AnyRecord={}){const data={actor,action,entityType,entityId,metadata,createdAt:new Date()};if(db())return Activity.create(data);const record={...data,_id:id()};memory.activity.unshift(record);return record}
+export async function listActivity(){if(db())return Activity.find().sort({createdAt:-1}).limit(200).lean();return memory.activity.slice(0,200)}

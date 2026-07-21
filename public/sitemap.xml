@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://example.com/</loc><priority>1.0</priority></url>
+  <url><loc>https://example.com/services</loc></url>
+  <url><loc>https://example.com/industries</loc></url>
+  <url><loc>https://example.com/work</loc></url>
+  <url><loc>https://example.com/about</loc></url>
+  <url><loc>https://example.com/insights</loc></url>
+  <url><loc>https://example.com/join</loc></url>
+  <url><loc>https://example.com/start-a-project</loc></url>
+  <url><loc>https://example.com/services/technology-strategy</loc></url>
+  <url><loc>https://example.com/services/custom-software</loc></url>
+  <url><loc>https://example.com/services/ai-knowledge-systems</loc></url>
+  <url><loc>https://example.com/services/automation-integration</loc></url>
+  <url><loc>https://example.com/services/digital-experience</loc></url>
+  <url><loc>https://example.com/services/data-cloud</loc></url>
+  <url><loc>https://example.com/industries/education</loc></url>
+  <url><loc>https://example.com/industries/nonprofits-ministries</loc></url>
+  <url><loc>https://example.com/industries/growing-businesses</loc></url>
+  <url><loc>https://example.com/industries/professional-services</loc></url>
+  <url><loc>https://example.com/industries/startups-digital-products</loc></url>
+  <url><loc>https://example.com/insights/choosing-the-right-system</loc></url>
+  <url><loc>https://example.com/insights/practical-ai-adoption</loc></url>
+  <url><loc>https://example.com/insights/automating-administration</loc></url>
+  <url><loc>https://example.com/insights/digital-foundations-for-schools</loc></url>
+  <url><loc>https://example.com/privacy</loc></url>
+  <url><loc>https://example.com/terms</loc></url>
+  <url><loc>https://example.com/accessibility</loc></url>
+</urlset>
